@@ -9,10 +9,8 @@ import boto
 import boto.s3.connection
 from boto.s3.key import Key
 
-conn = boto.s3.connect_to_region('us-east-1',
-    aws_access_key_id = 'PUBLICKEY',
-    aws_secret_access_key = 'PRIVATEKEY',
-    calling_format = boto.s3.connection.OrdinaryCallingFormat())
+# Assume it is running on a platform with an IAM Role with appropriate permissions. Set region here. 
+conn = boto.s3.connect_to_region('ap-southeast-2', calling_format = boto.s3.connection.OrdinaryCallingFormat())
 pasteList = []
 
 with open(os.getcwd() + '/log.csv', 'w') as csvfile:
@@ -25,15 +23,15 @@ with open(os.getcwd() + '/log.csv', 'w') as csvfile:
 			if paste['key'] in pasteList:
 				pass
 			else:
-				pasteDirectory = os.getcwd() + '/pastes-2/'
+				pasteDirectory = os.getcwd() + '/pastes/'
 				p = requests.get(paste['scrape_url'])
 				pasteFile = open(pasteDirectory + '/' + paste['key'] +'.txt', "w")
 				pasteFile.write(p.content)
 				pasteFile.close()
-				writer.writerow({'key':paste['key'],'date':paste['date'],'size':paste['size'],'expire':paste['expire'],'title':paste['title'].encode('utf-8'),'syntax':paste['syntax'],'user':paste['user']})				
+				writer.writerow({'key':paste['key'],'date':paste['date'],'size':paste['size'],'expire':paste['expire'],'title':paste['title'].encode('utf-8').strip(),'syntax':paste['syntax'],'user':paste['user']})				
 				bucket = conn.get_bucket('BUCKETNAME')
 				key_name = paste['key'] +'.txt'
 				k = bucket.new_key(key_name)
 				k.set_contents_from_filename(pasteDirectory + '/' + paste['key'] +'.txt')
 				pasteList.append(paste['key'])
-		time.sleep(20)
+		time.sleep(10)
